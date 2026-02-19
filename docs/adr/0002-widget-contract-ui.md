@@ -86,7 +86,34 @@ Widgets must not duplicate integration logic internally.
 
 ### 4. Theme Layer via Documented CSS Variables
 
-Visual customisation is provided through documented CSS variables.
+Visual customisation is provided through documented CSS variables (tokens).
+Presentation-related properties must not be embedded in the runtime JSON contract unless they are inherently content-driven.
+
+Widgets must:
+- Use CSS variables for design-related properties (spacing, colours, radius, transitions, control styling).
+- Provide fallback values directly within var(--token, fallback) usage.
+- Avoid declaring default CSS variables at the root.
+- Avoid global element selectors (e.g., button {}).
+- Scope structural resets within the widget namespace.
+- Participate predictably in the host CSS cascade (Light DOM).
+
+Example:
+```
+.reactedge-usp {
+    background-color: var(--re-usp-bg, #003652);
+    color: var(--re-usp-text-color, #F6F2DF);
+    gap: var(--re-usp-gap, 1.25rem);
+}
+```
+
+This ensures:
+- Safe default rendering
+- Automatic host-level overrides
+- No specificity conflicts
+- Clear separation between content and design
+- Reduced runtime configuration surface
+
+The JSON contract must not contain purely presentational properties such as colours or layout styling unless explicitly justified by feature requirements.
 
 This layer remains separate from behavioural logic.
 
