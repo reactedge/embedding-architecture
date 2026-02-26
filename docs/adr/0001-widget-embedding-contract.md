@@ -1,54 +1,208 @@
-# ADR-0001: Widget Embedding Contract Strategy
+# ADR-1: Contract & Compatibility Model
 
-## Status
-Accepted
+**Status:** Accepted  
+**Last Updated:** 2026-02-26
+
+---
 
 ## Context
-ReactEdge widgets must be embeddable into legacy environments (WordPress, Magento, static sites) 
-without requiring ownership of the host application's runtime state or build process.
-  
-### Architectural Constraints
-Each widget must operate independently and manage its own state lifecycle.
-- Must operate in isolation and not rely on host application state.
-- No host build pipeline integration is required.
-- Integration is limited to static script inclusion and declarative configuration.
-- Widgets must cooperate with the JavaScript host and the CSS environments.
 
-Traditional SPA or micro-frontend approaches assume platform control,
-which is not available in most legacy environments.
+ReactEdge widgets execute independently of host build systems and runtime state.
+
+To remain portable and safely evolvable across platforms, the widget contract defines:
+
+- Configuration surface
+- Behavioural outputs
+- Event payload structure
+- Localisation boundaries
+
+Without a strict contract model:
+
+- Integrations silently break
+- Behaviour drifts between versions
+- Backward compatibility becomes unenforceable
+
+The contract is the complete integration boundary.
+
+---
 
 ## Decision
-Widgets are distributed as self-contained, versioned IIFE JavaScript bundles.
 
-Each bundle:
-- Contains all runtime dependencies (including React and internal libraries).
-- Registers a custom HTML element as its public interface.
-- Executes without requiring host build integration.
-- Does not expose or depend on global variables.
+Each widget SHALL:
 
-Integration requires only:
-1. Inclusion of the versioned script file.
-2. Placement of the corresponding custom element in markup.
-3. Optional declarative configuration via data-* attributes or JSON script block.
+1. Consume a single JSON contract.
+2. Render deterministically from:
+    - Parsed contract
+    - Explicit runtime configuration
+3. Version all behavioural outputs (including events).
+4. Support localisation exclusively via the contract.
+5. Reject unknown top-level keys.
+6. Guarantee backward compatibility within a major version.
 
-No shared runtime, module federation, or host dependency alignment is required.
+Breaking structural changes require a major version increment.
 
-## Alternatives Considered
-- Module federation
-- Full SPA embedding
-- Script injection with global variables
-- Headless-only rebuild
+---
 
-These approaches either required build-time coupling or platform ownership.
+## Contract Structure
+
+Example:
+
+```json
+{
+  "data": {},
+  "runtime": {},
+  "integrations": {},
+  "translations": {}
+}
+```
+
+### Keys
+
+- `data`  
+  Required. Business content rendered by the widget.
+
+- `runtime`  
+  Optional. Execution context (flags, environment, mode).
+
+- `integrations`  
+  Optional. Explicit external dependencies.
+
+- `translations`  
+  Optional. Localised user-facing strings (ADR-0008).
+
+No additional top-level keys are permitted without formal revision of this ADR.
+
+---
+
+## Example 1 — Deterministic Rendering
+
+### ❌ Invalid (Non-deterministic)
+
+```ts
+const id = Math.random().toString(36);
+```
+
+This changes DOM structure on every mount.  
+Snapshot tests break. Host integrations fail.
+
+### ✅ Correct
+
+DOM structure must be a pure function of:
+
+```json
+{
+  "data": {
+    "items": [...]
+  }
+}
+```
+
+Same contract → same DOM output.
+
+---
+
+## Example 2 — Event Versioning Discipline
+
+### v1 Event
+
+```ts
+reactedge:minicart:add:v1
+{
+  sku: "ABC-123",
+  qty: 2
+}
+```
+
+### ❌ Breaking Change Without Version Bump
+
+```ts
+reactedge:minicart:add
+{
+  productSku: "ABC-123",
+  quantity: 2
+}
+```
+
+Existing listeners break silently.
+
+### ✅ Correct Versioned Evolution
+
+```ts
+reactedge:minicart:add:v2
+{
+  productSku: "ABC-123",
+  quantity: 2
+}
+```
+
+Event versioning preserves determinism per version.
+
+---
+
+## Example 3 — Localisation via Contract
+
+### Contract
+
+```json
+{
+  "locale": "fr-FR",
+  "translations": {
+    "store_found_singular": "%1 magasin trouvé",
+    "store_found_plural": "%1 magasins trouvés"
+  },
+  "data": {
+    "count": 2
+  }
+}
+```
+
+Widget logic:
+
+- Uses `Intl.PluralRules`
+- Selects correct key
+- Substitutes value
+
+### ❌ Forbidden
+
+Hardcoded string inside widget:
+
+```ts
+"2 stores found"
+```
+
+Localisation is part of the contract surface.
+
+---
+
+## Compatibility Rules
+
+Within a major version:
+
+- Fields may be added (non-breaking).
+- Fields may not be removed.
+- Event payload structure must remain stable.
+- Translation keys must not change semantics.
+
+If contract shape changes → Major version increment required.
+
+---
+
+## Architectural Principle
+
+> Configuration, behaviour, events, and localisation form a single versioned contract surface.
+
+---
 
 ## Consequences
 
 ### Positive
-- Portable across platforms
-- Zero host build integration
-- Predictable deployment
 
-### Negative
-- No shared runtime between widgets
-- Potential duplication of small utilities
-- Requires strict isolation discipline
+- Deterministic behaviour
+- Safe upgrades
+- Clear migration paths
+- Portable across platforms
+
+### Trade-offs
+
+- Strict schema governance required
+- Slightly higher versioning discipline overhead  
