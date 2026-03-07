@@ -1,7 +1,8 @@
+
 # ADR-2: Deployment & Version Governance Model
 
 **Status:** Accepted  
-**Last Updated:** 2026-02-26
+**Last Updated:** 2026-03-07
 
 ---
 
@@ -67,6 +68,28 @@ The independence principle does not.
 
 ---
 
+## Debugging Support (Source Maps)
+
+To support debugging within host environments, widget can expose source maps.
+
+Source maps allow developers to inspect and debug widgets directly in browser developer tools using the original source files rather than the compiled bundle.
+
+Rules:
+
+- Each published bundle can provide a corresponding `.map` file. (set sourcemap: true in vite.config.ts: this should not be used in production mode)
+- The source maps directly relate to 1 unique IIFE release file version
+
+Example:
+
+```
+https://cdn.reactedge.net/storefinder/1.2.3/storefinder.iife.js
+https://cdn.reactedge.net/storefinder/1.2.3/storefinder.iife.js.map
+```
+
+This enables developers to debug widget behaviour in real storefront environments without requiring access to the original build pipeline.
+
+---
+
 ## Versioning Rules
 
 ReactEdge follows semantic versioning:
@@ -129,4 +152,4 @@ Hosting location is configurable.
 
 - External hosting dependency
 - Strict version governance required
-- Operational discipline needed for lifecycle management  
+- Operational discipline needed for lifecycle management
