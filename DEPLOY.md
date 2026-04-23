@@ -190,3 +190,7 @@ Restart all services:
                 └─ PM2
                     │
                     └─ Express apps
+
+
+### Verifying the ports used for each docker containers
+docker ps --filter "name=nginx_" --format "{{.Names}} {{.Ports}}"

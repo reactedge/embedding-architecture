@@ -157,8 +157,6 @@ Event versioning preserves determinism per version.
 ```
 
 Widget logic:
-
-- Uses `Intl.PluralRules`
 - Selects correct key
 - Substitutes value
 
@@ -192,6 +190,16 @@ If contract shape changes → Major version increment required.
 > Configuration, behaviour, events, and localisation form a single versioned contract surface.
 
 ---
+
+## Fallback
+
+The widget contract is simpler to be maintained in the core system as it means less environments to handle. Using a single 
+environment when developing a POC for a feature for instance, it makes sense to enable the widget to use a simpler contract.
+Therefore, the contract can be also read from the DOM as a fallback mechanism to enable the widget to work without any additional 
+CDN constraint. This is a practice that is built-in optionally in some widgets. This method is in exploration to be formalised systematically on 
+all widgets. 
+
+The DOM node `<script type="application/json" ${WIDGET_ID}-data-config>` is used to define a local contract.
 
 ## Consequences
 

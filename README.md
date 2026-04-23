@@ -17,8 +17,16 @@ Those environments:
 - Control layout contexts
 - May introduce conflicting resets
 - May evolve independently of the embedded feature
+- Execute within constrained and unpredictable network conditions
 
-This repository formalises the decisions that ensure safe, predictable embedding.
+Network constraints include:
+- Cross-origin restrictions (CORS, preflight failures)
+- Asset delivery through CDNs and intermediate proxies (e.g. caching, rewrites)
+- Integrity enforcement (SRI) and script trust boundaries
+- Variable latency and cold starts (edge, origin, third-party APIs)
+- Cache incoherence across browser, CDN, and origin layers
+
+This repository formalises the decisions that ensure safe, predictable embedding across both rendering and delivery boundaries.
 
 ---
 

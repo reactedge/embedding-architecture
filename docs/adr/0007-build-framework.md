@@ -31,6 +31,11 @@ The widget build stack is defined as:
 - **TypeScript** for development
 - **No React compilation**
 - No framework-specific runtime dependencies
+```bash
+npm create vite@latest vite_project (React/Typescript)
+cd vite_project
+npm install
+```
 
 Widgets strive to remain framework-agnostic and compatible with any host platform.
 
