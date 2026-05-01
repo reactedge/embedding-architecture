@@ -1,7 +1,7 @@
-# ADR-3: Runtime Isolation Model
+# ADR-3: Runtime Isolation & Contract Resolution Model
 
-**Status:** Accepted  
-**Last Updated:** 2026-02-26
+**Status:** Accepted (Revised)  
+**Last Updated:** 2026-05-01
 
 ---
 
@@ -53,8 +53,8 @@ The runtime must not assume a single widget instance.
 ### Correct Pattern
 
 ```html
-<storefinder-widget data-contract="/contracts/store-1.json"></storefinder-widget>
-<storefinder-widget data-contract="/contracts/store-2.json"></storefinder-widget>
+<storefinder-widget data-instance="store-1"></storefinder-widget>
+<storefinder-widget data-instance="store-2"></storefinder-widget>
 ```
 
 Each instance:
@@ -64,27 +64,17 @@ Each instance:
 - Emits scoped, versioned events
 - Does not interfere with sibling instances
 
-### Forbidden Pattern
-
-- Global singleton state
-- One-instance-per-type assumptions
-- Adapter-level restriction of instance cardinality
-
-Adapters must expose runtime capability, not constrain it.
+Widgets are now instantiated using `data-instance` as an **alias**
+- The alias maps to a contract defined in a **central registry (manifest)**
 
 ---
 
-## Mounting Discipline
+### Behaviour
 
-Mounting must be idempotent.
-
-Re-scanning the DOM must not:
-
-- Double-mount components
-- Duplicate event listeners
-- Recreate state unexpectedly
-
-Mount logic must detect and guard against duplicate initialisation.
+- The runtime resolves the widget configuration using the instance alias
+- The contract is no longer fetched per widget instance
+- Multiple widget instances may share the same underlying contract
+- Contract resolution is handled outside the DOM
 
 ---
 
@@ -134,13 +124,85 @@ Event collisions across instances are prohibited.
 
 ### Positive
 
-- Safe multi-widget composition
-- Cross-platform behavioural consistency
-- Reduced integration fragility
-- Deterministic runtime behaviour
+- Reduced network overhead (no per-instance contract fetch)
+- Improved performance on multi-widget pages
+- Centralised configuration management
+- Better alignment with orchestrated runtime model
 
 ### Trade-offs
 
-- Strict event governance required
-- Loader discipline required to avoid scope creep
-- Slightly higher implementation complexity
+- Implicit contract resolution reduces DOM-level transparency
+- Increased reliance on runtime registry correctness
+- Harder debugging if instance-to-contract mapping is unclear
+- Potential for hidden coupling via shared instance aliases
+
+---
+
+# Roadmap
+
+The current model introduces a runtime orchestration layer but does not yet formalise it.
+
+The following improvements are required to stabilise and scale the system.
+
+---
+
+## 1. Formal Contract Resolution Rules
+
+Define explicit resolution behaviour:
+
+- `data-instance` MUST map to exactly one contract
+- Missing or invalid instance MUST fail fast
+- Contract MUST be immutable during page lifecycle
+
+---
+
+## 2. Registry Lifecycle Control
+
+Introduce:
+
+- Single registry fetch per page
+- Preload or bootstrap strategy before widget mounting
+- Versioned registry support
+
+Goal:
+
+> Deterministic contract resolution across all environments
+
+---
+
+## 3. Explicit Loading Strategy
+
+Introduce `data-load` attribute:
+
+```html
+<storefinder-widget 
+  data-instance="store-1"
+  data-load="onscroll:300">
+</storefinder-widget>
+```
+
+Planned modes:
+
+- `critical` → immediate load (blocking)
+- `eager` → immediate non-blocking load
+- `onscroll:<offset>` → lazy load on viewport proximity
+
+Goal:
+
+> Decouple loading timing from mounting logic
+
+---
+
+## 4. Runtime Phases Definition
+
+Formalise widget lifecycle:
+
+1. **Resolve** (map instance → contract)
+2. **Schedule** (apply loading strategy)
+3. **Mount** (initialise widget)
+
+Goal:
+
+> Prevent race conditions and inconsistent behaviour
+
+---

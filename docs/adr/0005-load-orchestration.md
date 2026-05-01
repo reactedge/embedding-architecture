@@ -1,7 +1,8 @@
 # ADR-0007: Widget Loader & Mounting Orchestration Layer
 
 ## Status
-Accepted (Current State)
+**Status:** Accepted (Revised)  
+**Last Updated:** 2026-05-01
 
 ---
 
@@ -23,7 +24,7 @@ ReactEdge defines a dedicated loader layer responsible for:
 
 - Identifying which widget(s) are relevant for a given page context
 - Triggering widget mounting when relevant
-- Optionally deferring mounting until after first paint
+- Optionally deferring mounting based on loading strategy 
 
 The loader:
 
@@ -58,7 +59,8 @@ The loader may:
 
 - Detect page context signals (route, template markers, DOM presence)
 - Decide whether a widget should mount
-- Defer mounting until after first paint
+- Parse and apply widget loading strategy (`data-load`)
+- Schedule mounting accordingly (immediate, deferred)
 
 The loader must not:
 
@@ -67,6 +69,79 @@ The loader must not:
 - Depend on undocumented global variables
 - Introduce implicit network calls
 - Take ownership of host state management
+
+---
+
+## Loading Strategy
+
+The loader supports explicit loading strategies to control when a widget is mounted.
+
+Loading strategy is defined via the `data-load` attribute on the widget element.
+
+```html
+<storefinder-widget 
+  data-instance="store-1"
+  data-load="onscroll:300">
+</storefinder-widget>
+```
+
+
+---
+
+### Supported Strategies
+
+#### `critical`
+
+- Widget is mounted immediately
+- May execute before or during initial render
+- Intended for above-the-fold, business-critical features
+
+```html
+data-load="critical"
+```
+
+---
+
+#### `eager`
+
+- Widget is mounted as soon as possible after initial render
+- Non-blocking
+- Typically scheduled on `DOMContentLoaded` or next event loop
+
+```html
+data-load="eager"
+```
+
+---
+
+#### `onscroll:<offset>`
+
+- Widget is mounted when it enters the viewport
+- `<offset>` defines preload distance in pixels
+
+```html
+data-load="onscroll:300"
+```
+
+Meaning:
+
+- Mount when widget is within 300px of viewport
+
+---
+
+### Default Behaviour
+
+If `data-load` is not specified:
+
+```
+default = eager
+```
+
+## Constraints
+
+- Loading strategy affects **when** a widget mounts, not **how** it behaves
+- Widgets must remain functionally identical regardless of loading strategy
+- Loader must not introduce side effects based on loading mode
 
 ---
 
