@@ -1,4 +1,4 @@
-# ADR-00X: Enforce Subresource Integrity (SRI) for ReactEdge Widgets
+# 0009: Enforce Subresource Integrity (SRI) for ReactEdge Widgets
 
 ## Status
 **Status:** Accepted  
