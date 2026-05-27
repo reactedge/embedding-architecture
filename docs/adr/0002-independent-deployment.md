@@ -60,7 +60,7 @@ Relative paths are prohibited because they introduce:
 Example (correct pattern):
 
 ```html
-<script src="https://cdn.reactedge.net/storefinder/1.2.3/storefinder.iife.js"></script>
+<script src="https://cdn.reactedge.net/storefinder/storefinder.1.2.3.iife.js"></script>
 ```
 
 The deployment location may change.  
@@ -82,8 +82,8 @@ Rules:
 Example:
 
 ```
-https://cdn.reactedge.net/storefinder/1.2.3/storefinder.iife.js
-https://cdn.reactedge.net/storefinder/1.2.3/storefinder.iife.js.map
+https://cdn.reactedge.net/storefinder/storefinder.1.2.3.iife.js
+https://cdn.reactedge.net/storefinder/storefinder.1.2.3.iife.js.map
 ```
 
 This enables developers to debug widget behaviour in real storefront environments without requiring access to the original build pipeline.
