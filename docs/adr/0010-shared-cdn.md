@@ -1,4 +1,4 @@
-# 0010 — Externalized SSR Runtime and Shared CDN Assets
+# 0010 — Shared CDN Assets
 
 ## Status
 Proposed
@@ -17,21 +17,7 @@ This introduces new operational concerns around:
 
 # Decision
 
-## 1. Dedicated SSR entrypoint per widget
-
-Each widget exposes a dedicated SSR entrypoint:
-
-```text
-vite_project/src/ssr/
-```
-
-Purpose:
-- allow widgets to operate in either SSR or CSR mode
-- isolate SSR rendering logic from browser runtime code
-
----
-
-## 2. Externalized CDN assets
+## 1. Externalized CDN assets
 
 Contracts and styles are removed from widget-local Vite public folders.
 
@@ -45,7 +31,6 @@ This includes:
 - contracts
 - manifests
 - shared styles
-- future static SSR fragments
 
 Purpose:
 - independent operational deployment
@@ -68,6 +53,5 @@ Purpose:
 - Additional repository coordination
 - Version compatibility concerns between:
     - widget runtime
-    - SSR renderer
     - CDN contracts
 - Increased deployment orchestration complexity
